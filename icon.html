@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        canvas {
+            background: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="iconCanvas" width="512" height="512"></canvas>
+    <script>
+        const canvas = document.getElementById('iconCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 绘制表格图标
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 24;
+        
+        // 外框
+        ctx.strokeRect(100, 100, 312, 312);
+        
+        // 横线
+        ctx.beginPath();
+        ctx.moveTo(100, 241);
+        ctx.lineTo(412, 241);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(100, 341);
+        ctx.lineTo(412, 341);
+        ctx.stroke();
+        
+        // 竖线
+        ctx.beginPath();
+        ctx.moveTo(241, 100);
+        ctx.lineTo(241, 412);
+        ctx.stroke();
+        
+        // 保存图片
+        const link = document.createElement('a');
+        link.download = 'icon-512x512.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    </script>
+</body>
+</html> 

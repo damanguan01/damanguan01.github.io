@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="表格管理">
+    <title>数据表格管理器</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>关于我</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">首页</a></li>
+                <li><a href="#articles">文章</a></li>
+                <li><a href="about.html">关于</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="data-section">
+            <h2>我的数据记录</h2>
+            <div class="table-container">
+                <div class="table-controls">
+                    <!-- 添加表格选择和新建功能 -->
+                    <div class="table-selector">
+                        <select id="tableSelector" onchange="switchTable(this.value)">
+                            <option value="">选择表格</option>
+                        </select>
+                        <button onclick="showNewTableForm()">新建表格</button>
+                    </div>
+                    <button onclick="showAddForm()">添加新数据</button>
+                    <button onclick="showColumnForm()">管理列</button>
+                    <button onclick="exportAsImage()">导出为图片</button>
+                    <button onclick="showStyleForm()">表格样式</button>
+                    <button onclick="deleteCurrentTable()" class="delete-btn">删除当前表格</button>
+                </div>
+                
+                <!-- 添加图片单元格 -->
+                <div class="image-cell">
+                    <div class="image-placeholder" onclick="document.getElementById('imageInput').click()">
+                        <span>点击上传图片</span>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none" onchange="handleImageUpload(event)">
+                    </div>
+                    <img id="displayImage" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                </div>
+
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>项目</th>
+                            <th>数值</th>
+                            <th>备注</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2024-03-20</td>
+                            <td>示例项目1</td>
+                            <td>100</td>
+                            <td>这是一条示例数据</td>
+                            <td>
+                                <button onclick="editRow(this)">编辑</button>
+                                <button onclick="deleteRow(this)">删除</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="addForm" class="form-container" style="display: none;">
+                <h3>添加新数据</h3>
+                <form onsubmit="addData(event)">
+                    <div class="form-group">
+                        <label for="date">日期：</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="project">项目：</label>
+                        <input type="text" id="project" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value">数值：</label>
+                        <input type="number" id="value" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="note">备注：</label>
+                        <textarea id="note"></textarea>
+                    </div>
+                    <button type="submit">保存</button>
+                    <button type="button" onclick="hideAddForm()">取消</button>
+                </form>
+            </div>
+
+            <div id="columnForm" class="form-container" style="display: none;">
+                <h3>管理列</h3>
+                <form onsubmit="addColumn(event)">
+                    <div class="form-group">
+                        <label for="columnName">列名：</label>
+                        <input type="text" id="columnName" required>
+                    </div>
+                    <button type="submit">添加列</button>
+                    <button type="button" onclick="hideColumnForm()">取消</button>
+                </form>
+                <div id="existingColumns" class="existing-columns">
+                    <h4>现有列：</h4>
+                    <!-- 列表将由 JavaScript 动态生成 -->
+                </div>
+            </div>
+
+            <!-- 添加样式设置表单 -->
+            <div id="styleForm" class="form-container" style="display: none;">
+                <h3>表格样式设置</h3>
+                <form onsubmit="applyTableStyle(event)">
+                    <div class="form-group">
+                        <label for="borderColor">边框颜色：</label>
+                        <input type="color" id="borderColor" value="#2c3e50">
+                    </div>
+                    <div class="form-group">
+                        <label for="headerBgColor">表头背景色：</label>
+                        <input type="color" id="headerBgColor" value="#2c3e50">
+                    </div>
+                    <div class="form-group">
+                        <label for="headerTextColor">表头文字颜色：</label>
+                        <input type="color" id="headerTextColor" value="#ffffff">
+                    </div>
+                    <div class="form-group">
+                        <label for="rowBgColor">行背景色：</label>
+                        <input type="color" id="rowBgColor" value="#ffffff">
+                    </div>
+                    <div class="form-group">
+                        <label for="rowTextColor">行文字颜色：</label>
+                        <input type="color" id="rowTextColor" value="#333333">
+                    </div>
+                    <div class="form-group">
+                        <label for="borderWidth">边框宽度：</label>
+                        <input type="range" id="borderWidth" min="1" max="5" value="2">
+                        <span id="borderWidthValue">2px</span>
+                    </div>
+                    <button type="submit">应用样式</button>
+                    <button type="button" onclick="hideStyleForm()">取消</button>
+                    <button type="button" onclick="resetTableStyle()">重置默认</button>
+                </form>
+            </div>
+
+            <!-- 添加新建表格表单 -->
+            <div id="newTableForm" class="form-container" style="display: none;">
+                <h3>新建表格</h3>
+                <form onsubmit="createNewTable(event)">
+                    <div class="form-group">
+                        <label for="tableName">表格名称：</label>
+                        <input type="text" id="tableName" required>
+                    </div>
+                    <button type="submit">创建</button>
+                    <button type="button" onclick="hideNewTableForm()">取消</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 我的博客. 保留所有权利。</p>
+    </footer>
+
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="about.js"></script>
+</body>
+</html> 
