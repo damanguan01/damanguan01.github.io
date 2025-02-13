@@ -41,6 +41,7 @@
                     <button onclick="exportAsImage()">导出为图片</button>
                     <button onclick="showStyleForm()">表格样式</button>
                     <button onclick="deleteCurrentTable()" class="delete-btn">删除当前表格</button>
+                    <button onclick="showCellStyleForm()">单元格样式</button>
                 </div>
                 
                 <!-- 添加图片单元格 -->
@@ -162,6 +163,21 @@
                     </div>
                     <button type="submit">创建</button>
                     <button type="button" onclick="hideNewTableForm()">取消</button>
+                </form>
+            </div>
+
+            <!-- 添加单元格样式表单 -->
+            <div id="cellStyleForm" class="form-container" style="display: none;">
+                <h3>单元格样式设置</h3>
+                <form onsubmit="applyCellStyle(event)">
+                    <div class="form-group">
+                        <label for="cellBgColor">背景颜色：</label>
+                        <input type="color" id="cellBgColor" value="#ffffff">
+                    </div>
+                    <p class="hint">点击单元格来应用样式</p>
+                    <button type="button" onclick="startCellSelection()">开始选择</button>
+                    <button type="button" onclick="hideCellStyleForm()">取消</button>
+                    <button type="button" onclick="resetCellStyle()">重置</button>
                 </form>
             </div>
         </section>

@@ -1,6 +1,9 @@
 // 当前选中的表格名称
 let currentTableName = '';
 
+// 添加单元格样式相关变量
+let isSelectingCell = false;
+
 function showAddForm() {
     document.getElementById('addForm').style.display = 'block';
 }
@@ -435,7 +438,65 @@ function updateTableSelector() {
     });
 }
 
-// 修改保存函数以支持多表格
+// 显示单元格样式表单
+function showCellStyleForm() {
+    document.getElementById('cellStyleForm').style.display = 'block';
+}
+
+// 隐藏单元格样式表单
+function hideCellStyleForm() {
+    document.getElementById('cellStyleForm').style.display = 'none';
+    stopCellSelection();
+}
+
+// 开始单元格选择模式
+function startCellSelection() {
+    isSelectingCell = true;
+    const cells = document.querySelectorAll('#dataTable td:not(:last-child)');
+    cells.forEach(cell => {
+        cell.classList.add('selectable');
+        cell.addEventListener('click', applyCellStyle);
+    });
+}
+
+// 停止单元格选择模式
+function stopCellSelection() {
+    isSelectingCell = false;
+    const cells = document.querySelectorAll('#dataTable td');
+    cells.forEach(cell => {
+        cell.classList.remove('selectable');
+        cell.removeEventListener('click', applyCellStyle);
+    });
+}
+
+// 应用单元格样式
+function applyCellStyle(event) {
+    if (!isSelectingCell) return;
+    
+    const cell = event.target;
+    const color = document.getElementById('cellBgColor').value;
+    
+    cell.style.backgroundColor = color;
+    cell.setAttribute('data-bg-color', color);
+    
+    // 保存更改
+    saveToLocalStorage();
+}
+
+// 重置单元格样式
+function resetCellStyle() {
+    if (!confirm('确定要重置所有单元格的样式吗？')) return;
+    
+    const cells = document.querySelectorAll('#dataTable td[data-bg-color]');
+    cells.forEach(cell => {
+        cell.style.backgroundColor = '';
+        cell.removeAttribute('data-bg-color');
+    });
+    
+    saveToLocalStorage();
+}
+
+// 修改保存函数以包含单元格样式
 function saveToLocalStorage() {
     try {
         if (!currentTableName) return;
@@ -445,7 +506,8 @@ function saveToLocalStorage() {
             tableData: [],
             columnNames: [],
             styles: {},
-            imageData: null
+            imageData: null,
+            cellStyles: []
         };
         
         // 保存表格数据
@@ -480,6 +542,17 @@ function saveToLocalStorage() {
         const displayImage = document.getElementById('displayImage');
         saveData.imageData = displayImage.style.display !== 'none' ? displayImage.src : null;
         
+        // 保存单元格样式
+        document.querySelectorAll('#dataTable td[data-bg-color]').forEach(cell => {
+            const row = cell.parentElement.rowIndex - 1; // -1 因为表头
+            const col = cell.cellIndex;
+            saveData.cellStyles.push({
+                row,
+                col,
+                bgColor: cell.getAttribute('data-bg-color')
+            });
+        });
+        
         // 保存到对应的表格中
         const tables = JSON.parse(localStorage.getItem('tables') || '{}');
         tables[currentTableName] = saveData;
@@ -490,7 +563,7 @@ function saveToLocalStorage() {
     }
 }
 
-// 修改加载函数以支持多表格
+// 修改加载函数以恢复单元格样式
 function loadFromLocalStorage() {
     if (!currentTableName) {
         resetTableToDefault();
@@ -559,6 +632,21 @@ function loadFromLocalStorage() {
         displayImage.src = savedData.imageData;
         displayImage.style.display = 'block';
         placeholder.style.display = 'none';
+    }
+    
+    // 恢复单元格样式
+    if (savedData.cellStyles) {
+        const tbody = document.querySelector('#dataTable tbody');
+        savedData.cellStyles.forEach(style => {
+            const row = tbody.rows[style.row];
+            if (row) {
+                const cell = row.cells[style.col];
+                if (cell) {
+                    cell.style.backgroundColor = style.bgColor;
+                    cell.setAttribute('data-bg-color', style.bgColor);
+                }
+            }
+        });
     }
     
     // 更新表单字段
